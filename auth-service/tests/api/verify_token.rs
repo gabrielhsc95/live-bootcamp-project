@@ -1,10 +1,9 @@
 use crate::helpers::TestApp;
 
 #[tokio::test]
-async fn verify_token() {
+async fn should_return_422_if_malformed_input() {
     let app = TestApp::new().await;
-    // let map = HashMap::new();
-    let response = app.post_verify_token().await;
-
-    assert_eq!(response.status(), 200);
+    let tc = serde_json::json!({});
+    let response = app.post_verify_token(&tc).await;
+    assert_eq!(response.status(), 422, "Failed for input: {:?}", tc);
 }

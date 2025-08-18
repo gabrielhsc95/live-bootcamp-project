@@ -10,6 +10,5 @@ pub struct SignupRequest {
 }
 
 pub async fn signup(Json(request): Json<SignupRequest>) -> impl IntoResponse {
-    // TODO
     StatusCode::OK.into_response()
 }
