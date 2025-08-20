@@ -83,6 +83,8 @@ jobs:
           password: ${{ secrets.DROPLET_PASSWORD }}
           script: |
             cd /root/gabuzando_bootcamp_app
-            docker compose down
+            # Forcefully stop and remove all containers for this project
+            docker compose down -v --remove-orphans
+            # Deploy the new containers
             docker compose pull
             docker compose up -d
