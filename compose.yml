@@ -24,6 +24,8 @@ services:
     volumes:
       - certbot-etc:/etc/letsencrypt
       - certbot-var:/var/lib/letsencrypt
+      # Add this line to mount the challenge directory
+      - ./nginx/certbot-challenge:/var/www/certbot
     depends_on:
       - nginx
     command: certonly --webroot --webroot-path=/var/www/certbot --email gabrielhsc95@gmail.com --agree-tos --no-eff-email -d bootcamp.gabuzando.dev
