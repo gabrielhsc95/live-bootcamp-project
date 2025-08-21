@@ -23,11 +23,10 @@ services:
     container_name: certbot
     restart: unless-stopped
     volumes:
-      # Use same volume mounts as nginx for consistency
       - ./data/certbot/www:/var/www/certbot:rw
       - ./data/certbot/conf:/etc/letsencrypt
-    # Command to check for renewal every 12 hours
-    command: renew --webroot -w /var/www/certbot --quiet
+    # This is the line to change
+    command: sh -c "while :; do certbot renew --webroot -w /var/www/certbot --quiet; sleep 12h & wait $${!}; done;"
     networks:
       - app-network
 
