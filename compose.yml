@@ -25,8 +25,8 @@ services:
     volumes:
       - ./data/certbot/www:/var/www/certbot:rw
       - ./data/certbot/conf:/etc/letsencrypt
-    # This is the line to change
-    command: sh -c "while :; do certbot renew --webroot -w /var/www/certbot --quiet; sleep 12h & wait $${!}; done;"
+    # Replace 'command:' with 'entrypoint:'
+    entrypoint: sh -c "while :; do certbot renew --webroot -w /var/www/certbot --quiet; sleep 12h & wait $${!}; done;"
     networks:
       - app-network
 
