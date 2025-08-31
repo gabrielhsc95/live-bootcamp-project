@@ -1,5 +1,5 @@
 use super::*;
-use crate::domain::{data_stores::UserStore, email};
+use crate::domain::data_stores::UserStore;
 
 async fn get_filled_hashmap_user_store() -> HashmapUserStore {
     let mut store = HashmapUserStore::default();

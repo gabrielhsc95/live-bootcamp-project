@@ -1,4 +1,4 @@
-use validator::{Validate, ValidationErrors};
+use validator::ValidationErrors;
 
 use crate::domain::{Email, Password};
 

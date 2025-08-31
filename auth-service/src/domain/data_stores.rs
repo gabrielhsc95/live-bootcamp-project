@@ -9,7 +9,7 @@ pub enum UserStoreError {
 use super::User;
 
 #[async_trait::async_trait]
-pub trait UserStore {
+pub trait UserStore: Send + Sync {
     async fn add_user(&mut self, user: User) -> Result<(), UserStoreError>;
 
     async fn get_user(&self, email: &str) -> Result<&User, UserStoreError>;

@@ -1,13 +1,5 @@
-use crate::{domain::UserStore, services::hashmap_user_store::HashmapUserStore};
-use axum::{
-    Json, Router,
-    http::StatusCode,
-    response::{IntoResponse, Response},
-    routing::post,
-    serve::Serve,
-};
-use domain::AuthAPIError;
-use serde::{Deserialize, Serialize};
+use crate::domain::UserStore;
+use axum::{Router, routing::post, serve::Serve};
 use std::error::Error;
 use std::marker::Send;
 use std::marker::Sync;
@@ -21,27 +13,6 @@ pub mod services;
 use crate::app_state::AppState;
 
 use routes::*;
-
-#[derive(Serialize, Deserialize, PartialEq, Debug)]
-pub struct ErrorResponse {
-    pub error: String,
-}
-
-impl IntoResponse for AuthAPIError {
-    fn into_response(self) -> Response {
-        let (status, error_message) = match self {
-            AuthAPIError::UserAlreadyExists => (StatusCode::CONFLICT, "User already exists"),
-            AuthAPIError::InvalidCredentials => (StatusCode::BAD_REQUEST, "Invalid credentials"),
-            AuthAPIError::UnexpectedError => {
-                (StatusCode::INTERNAL_SERVER_ERROR, "Unexpected error")
-            }
-        };
-        let body = Json(ErrorResponse {
-            error: error_message.to_string(),
-        });
-        (status, body).into_response()
-    }
-}
 
 pub struct Application<T: UserStore + Clone + Send + Sync + 'static> {
     server: Serve<Router, Router>,

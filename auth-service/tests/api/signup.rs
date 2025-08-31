@@ -1,9 +1,8 @@
 use crate::helpers::TestApp;
 use crate::helpers::get_random_email;
 
-use auth_service::ErrorResponse;
+use auth_service::domain::error::ErrorResponse;
 use auth_service::routes::SignupResponse;
-use axum::http::response;
 
 #[tokio::test]
 async fn should_return_400_if_invalid_input() {
