@@ -18,7 +18,7 @@ impl AsRef<str> for Email {
 impl Email {
     pub fn parse(email: &str) -> Result<Self, ValidationErrors> {
         let email = Email {
-            email: email.to_string(),
+            email: email.to_owned(),
         };
         email.validate()?;
         Ok(email)

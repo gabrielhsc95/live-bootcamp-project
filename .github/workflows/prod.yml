@@ -36,6 +36,7 @@ jobs:
       - name: Build and test auth-service code
         working-directory: ./auth-service
         run: |
+          export JWT_SECRET=secret
           cargo build --verbose
           cargo test --verbose
 
@@ -83,8 +84,7 @@ jobs:
           password: ${{ secrets.DROPLET_PASSWORD }}
           script: |
             cd /root/gabuzando_bootcamp_app
-            # Forcefully stop and remove all containers for this project
+            export JWT_SECRET=${{ secrets.JWT_SECRET }}
             docker compose down -v --remove-orphans
-            # Deploy the new containers
             docker compose pull
             docker compose up -d

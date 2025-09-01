@@ -9,16 +9,16 @@ async fn should_return_422_if_malformed_input() {
 
     let test_cases = [
         serde_json::json!({
-            "loginAttemptId": Uuid::new_v4().to_string(),
-            "2FACode": Uuid::new_v4().to_string()
+            "loginAttemptId": Uuid::new_v4().to_owned(),
+            "2FACode": Uuid::new_v4().to_owned()
         }),
         serde_json::json!({
             "email": random_email,
-            "2FACode": Uuid::new_v4().to_string()
+            "2FACode": Uuid::new_v4().to_owned()
         }),
         serde_json::json!({
             "email": random_email,
-            "loginAttemptId": Uuid::new_v4().to_string(),
+            "loginAttemptId": Uuid::new_v4().to_owned(),
         }),
     ];
     for tc in test_cases {

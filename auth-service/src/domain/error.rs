@@ -31,7 +31,7 @@ impl IntoResponse for AuthAPIError {
             }
         };
         let body = Json(ErrorResponse {
-            error: error_message.to_string(),
+            error: error_message.to_owned(),
         });
         (status, body).into_response()
     }

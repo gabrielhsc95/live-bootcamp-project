@@ -46,6 +46,8 @@ services:
     restart: "always"
     networks:
       - app-network
+    environment:
+      JWT_SECRET: ${JWT_SECRET} 
 
 # Remove old volumes, we are using bind mounts now for clarity
 # volumes:

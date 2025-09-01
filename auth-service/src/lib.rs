@@ -9,12 +9,13 @@ pub mod app_state;
 pub mod domain;
 pub mod routes;
 pub mod services;
+pub mod utils;
 
 use crate::app_state::AppState;
 
 use routes::*;
 
-pub struct Application<T: UserStore + Clone + Send + Sync + 'static> {
+pub struct Application<T: UserStore + Clone + 'static> {
     server: Serve<Router, Router>,
     pub address: String,
     app_state: AppState<T>,

@@ -32,7 +32,7 @@ pub async fn signup<T: UserStore>(
     let mut user_store = state.user_store.write().await;
     if let Ok(_) = user_store.add_user(user).await {
         let response = Json(SignupResponse {
-            message: "User created successfully!".to_string(),
+            message: "User created successfully!".to_owned(),
         });
 
         (StatusCode::CREATED, response).into_response()

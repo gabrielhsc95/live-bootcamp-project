@@ -33,7 +33,7 @@ impl UserStore for HashmapUserStore {
 
     async fn get_user(&self, email: &str) -> Result<&User, UserStoreError> {
         let email = Email {
-            email: email.to_string(),
+            email: email.to_owned(),
         };
         self.users.get(&email).ok_or(UserStoreError::UserNotFound)
     }

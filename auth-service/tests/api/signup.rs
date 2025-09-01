@@ -55,7 +55,7 @@ async fn should_return_400_if_invalid_input() {
                 .await
                 .expect("Could not deserialize response body to ErrorResponse")
                 .error,
-            "Invalid credentials".to_string()
+            "Invalid credentials".to_owned()
         )
     }
 }
@@ -77,7 +77,7 @@ async fn should_return_409_if_email_already_exists() {
             .await
             .expect("Could not deserialize response body to ErrorResponse")
             .error,
-        "User already exists".to_string()
+        "User already exists".to_owned()
     )
 }
 

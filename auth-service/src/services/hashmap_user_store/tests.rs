@@ -3,12 +3,7 @@ use crate::domain::data_stores::UserStore;
 
 async fn get_filled_hashmap_user_store() -> HashmapUserStore {
     let mut store = HashmapUserStore::default();
-    let user = User::parse(
-        "email@email.com".to_string(),
-        "Password1!".to_string(),
-        false,
-    )
-    .unwrap();
+    let user = User::parse("email@email.com".to_owned(), "Password1!".to_owned(), false).unwrap();
     store.add_user(user).await.unwrap();
     store
 }
@@ -17,15 +12,10 @@ async fn get_filled_hashmap_user_store() -> HashmapUserStore {
 async fn test_add_user() {
     let mut store = HashmapUserStore::default();
 
-    let user = User::parse(
-        "email@email.com".to_string(),
-        "Password1!".to_string(),
-        false,
-    )
-    .unwrap();
+    let user = User::parse("email@email.com".to_owned(), "Password1!".to_owned(), false).unwrap();
     store.add_user(user).await.unwrap();
     let email = Email {
-        email: "email@email.com".to_string(),
+        email: "email@email.com".to_owned(),
     };
     assert!(store.users.contains_key(&email));
 }
