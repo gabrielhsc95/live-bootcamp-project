@@ -1,5 +1,5 @@
-use crate::domain::AuthAPIError;
 use crate::domain::data_stores::UserStore;
+use crate::domain::{AuthAPIError, BannedTokenStore};
 use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
 use serde::{Deserialize, Serialize};
 
@@ -19,8 +19,8 @@ pub struct SignupResponse {
     pub message: String,
 }
 
-pub async fn signup<T: UserStore>(
-    State(state): State<AppState<T>>,
+pub async fn signup<T: UserStore, U: BannedTokenStore>(
+    State(state): State<AppState<T, U>>,
     Json(request): Json<SignupRequest>,
 ) -> impl IntoResponse {
     let user = match User::parse(request.email, request.password, false) {

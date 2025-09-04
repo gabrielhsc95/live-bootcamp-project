@@ -36,8 +36,8 @@ async fn root() -> impl IntoResponse {
     if address.is_empty() {
         address = "localhost".to_owned();
     }
-    let login_link = format!("http://{}:3000", address);
-    let logout_link = format!("http://{}:3000/logout", address);
+    let login_link = "/auth".to_owned();
+    let logout_link = "/auth/logout".to_owned();
 
     let template = IndexTemplate {
         login_link,
@@ -60,7 +60,7 @@ async fn protected(jar: CookieJar) -> impl IntoResponse {
         "token": &jwt_cookie.value(),
     });
 
-    let auth_hostname = env::var("AUTH_SERVICE_HOST_NAME").unwrap_or("0.0.0.0".to_owned());
+    let auth_hostname = env::var("AUTH_SERVICE_HOST_NAME").unwrap_or("localhost".to_owned());
     let url = format!("http://{}:3000/verify-token", auth_hostname);
 
     let response = match api_client.post(&url).json(&verify_token_body).send().await {

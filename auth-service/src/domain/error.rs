@@ -16,6 +16,8 @@ pub enum AuthAPIError {
     InvalidCredentials,
     UnexpectedError,
     IncorrectCredentials,
+    MissingToken,
+    InvalidToken,
 }
 
 impl IntoResponse for AuthAPIError {
@@ -29,6 +31,8 @@ impl IntoResponse for AuthAPIError {
             AuthAPIError::IncorrectCredentials => {
                 (StatusCode::UNAUTHORIZED, "Authentication failed")
             }
+            AuthAPIError::MissingToken => (StatusCode::BAD_REQUEST, "Invalid input"),
+            AuthAPIError::InvalidToken => (StatusCode::UNAUTHORIZED, "JWT is not valid"),
         };
         let body = Json(ErrorResponse {
             error: error_message.to_owned(),

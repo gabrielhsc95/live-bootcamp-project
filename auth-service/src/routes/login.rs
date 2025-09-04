@@ -1,6 +1,6 @@
 use crate::app_state::AppState;
 use crate::domain::AuthAPIError;
-use crate::domain::data_stores::UserStore;
+use crate::domain::data_stores::{BannedTokenStore, UserStore};
 use crate::utils::auth::generate_auth_cookie;
 use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
 use axum_extra::extract::CookieJar;
@@ -11,8 +11,8 @@ pub struct LoginRequest {
     pub email: String,
     pub password: String,
 }
-pub async fn login<T: UserStore>(
-    State(state): State<AppState<T>>,
+pub async fn login<T: UserStore, U: BannedTokenStore>(
+    State(state): State<AppState<T, U>>,
     jar: CookieJar,
     Json(request): Json<LoginRequest>,
 ) -> (CookieJar, impl IntoResponse) {

@@ -1,9 +1,8 @@
-use crate::domain::UserStore;
-use axum::{Router, routing::post, serve::Serve};
+use crate::domain::{BannedTokenStore, UserStore};
+use axum::{Router, http::Method, routing::post, serve::Serve};
 use std::error::Error;
-use std::marker::Send;
-use std::marker::Sync;
-use tower_http::services::ServeDir;
+use tower_http::{cors::CorsLayer, services::ServeDir};
+use utils::constants::DROPLET_IP;
 
 pub mod app_state;
 pub mod domain;
@@ -15,16 +14,28 @@ use crate::app_state::AppState;
 
 use routes::*;
 
-pub struct Application<T: UserStore + Clone + 'static> {
+pub struct Application {
     server: Serve<Router, Router>,
     pub address: String,
-    app_state: AppState<T>,
 }
 
-impl<T: UserStore + Clone + Send + Sync> Application<T> {
-    pub async fn build(app_state: AppState<T>, address: &str) -> Result<Self, Box<dyn Error>> {
+impl Application {
+    pub async fn build<T: UserStore + 'static, U: BannedTokenStore + 'static>(
+        app_state: AppState<T, U>,
+        address: &str,
+    ) -> Result<Self, Box<dyn Error>> {
         let listener = tokio::net::TcpListener::bind(address).await?;
         let address = listener.local_addr()?.to_string();
+
+        let allowed_origins = [
+            "http://localhost:8000".parse()?,
+            format!("http://{}:8000", DROPLET_IP.as_str()).parse()?,
+        ];
+
+        let cors = CorsLayer::new()
+            .allow_methods([Method::GET, Method::POST])
+            .allow_credentials(true)
+            .allow_origin(allowed_origins);
 
         let router = Router::new()
             .nest_service("/", ServeDir::new("assets"))
@@ -33,15 +44,12 @@ impl<T: UserStore + Clone + Send + Sync> Application<T> {
             .route("/verify-2fa", post(verify_2fa))
             .route("/logout", post(logout))
             .route("/verify-token", post(verify_token))
-            .with_state(app_state.clone());
+            .with_state(app_state.clone())
+            .layer(cors);
 
         let server = axum::serve(listener, router);
 
-        Ok(Application {
-            server,
-            address,
-            app_state,
-        })
+        Ok(Application { server, address })
     }
 
     pub async fn run(self) -> Result<(), std::io::Error> {
