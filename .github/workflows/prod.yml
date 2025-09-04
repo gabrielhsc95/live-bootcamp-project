@@ -35,8 +35,10 @@ jobs:
 
       - name: Build and test auth-service code
         working-directory: ./auth-service
+        env:
+          JWT_SECRET: "placeholder_for_testing"
+          DROPLET_IP: "127.0.0.1" # placeholder_for_testing
         run: |
-          export JWT_SECRET=secret
           cargo build --verbose
           cargo test --verbose
 
