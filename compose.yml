@@ -47,7 +47,8 @@ services:
     networks:
       - app-network
     environment:
-      JWT_SECRET: ${JWT_SECRET} 
+      JWT_SECRET: ${JWT_SECRET}
+      DROPLET_IP: ${DROPLET_IP}
 
 # Remove old volumes, we are using bind mounts now for clarity
 # volumes:
