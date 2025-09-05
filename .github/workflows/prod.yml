@@ -87,6 +87,7 @@ jobs:
           script: |
             cd /root/gabuzando_bootcamp_app
             export JWT_SECRET=${{ secrets.JWT_SECRET }}
+            export DROPLET_IP=${{ vars.DROPLET_IP }}
             docker compose down -v --remove-orphans
             docker compose pull
             docker compose up -d
