@@ -1,13 +1,13 @@
 use crate::app_state::AppState;
-use crate::domain::data_stores::{BannedTokenStore, UserStore};
+use crate::domain::data_stores::{BannedTokenStore, TwoFACodeStore, UserStore};
 use crate::domain::error::AuthAPIError;
 use crate::utils::auth::validate_token;
 use crate::utils::constants::JWT_COOKIE_NAME;
 use axum::{extract::State, http::StatusCode, response::IntoResponse};
 use axum_extra::extract::cookie::{Cookie, CookieJar};
 
-pub async fn logout<T: UserStore, U: BannedTokenStore>(
-    State(state): State<AppState<T, U>>,
+pub async fn logout<T: UserStore, U: BannedTokenStore, V: TwoFACodeStore>(
+    State(state): State<AppState<T, U, V>>,
     jar: CookieJar,
 ) -> (CookieJar, impl IntoResponse) {
     let cookie = match jar.get(JWT_COOKIE_NAME) {

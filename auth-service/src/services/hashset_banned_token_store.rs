@@ -4,17 +4,9 @@ use std::collections::HashSet;
 #[cfg(test)]
 mod tests;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct HashSetBannedTokenStore {
     pub tokens: HashSet<String>,
-}
-
-impl Default for HashSetBannedTokenStore {
-    fn default() -> Self {
-        Self {
-            tokens: HashSet::new(),
-        }
-    }
 }
 
 #[async_trait::async_trait]

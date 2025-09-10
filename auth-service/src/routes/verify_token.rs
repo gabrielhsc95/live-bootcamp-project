@@ -1,5 +1,5 @@
 use crate::app_state::AppState;
-use crate::domain::data_stores::{BannedTokenStore, UserStore};
+use crate::domain::data_stores::{BannedTokenStore, TwoFACodeStore, UserStore};
 use crate::domain::error::AuthAPIError;
 use crate::utils::auth::validate_token;
 use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
@@ -10,8 +10,8 @@ pub struct VerifyTokenRequest {
     pub token: String,
 }
 
-pub async fn verify_token<T: UserStore, U: BannedTokenStore>(
-    State(state): State<AppState<T, U>>,
+pub async fn verify_token<T: UserStore, U: BannedTokenStore, V: TwoFACodeStore>(
+    State(state): State<AppState<T, U, V>>,
     Json(request): Json<VerifyTokenRequest>,
 ) -> impl IntoResponse {
     if !state

@@ -50,7 +50,7 @@ impl AsRef<str> for Password {
 
 impl Password {
     pub fn parse(password: &str) -> Result<Self, ValidationErrors> {
-        let password = Password {
+        let password = Self {
             password: password.to_owned(),
         };
         password.validate()?;

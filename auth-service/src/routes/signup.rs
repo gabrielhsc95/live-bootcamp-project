@@ -1,5 +1,5 @@
 use crate::domain::data_stores::UserStore;
-use crate::domain::{AuthAPIError, BannedTokenStore};
+use crate::domain::{AuthAPIError, BannedTokenStore, TwoFACodeStore};
 use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
 use serde::{Deserialize, Serialize};
 
@@ -19,11 +19,11 @@ pub struct SignupResponse {
     pub message: String,
 }
 
-pub async fn signup<T: UserStore, U: BannedTokenStore>(
-    State(state): State<AppState<T, U>>,
+pub async fn signup<T: UserStore, U: BannedTokenStore, V: TwoFACodeStore>(
+    State(state): State<AppState<T, U, V>>,
     Json(request): Json<SignupRequest>,
 ) -> impl IntoResponse {
-    let user = match User::parse(request.email, request.password, false) {
+    let user = match User::parse(request.email, request.password, request.requires_2fa) {
         Ok(user) => user,
         Err(_) => {
             return AuthAPIError::InvalidCredentials.into_response();

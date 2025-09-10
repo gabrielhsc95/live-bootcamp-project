@@ -33,7 +33,7 @@ async fn should_return_200_if_valid_jwt_cookie() {
     let body_signup = serde_json::json!({
         "email": "valid@email.com",
         "password": "Password1!",
-        "requires2FA": true
+        "requires2FA": false
     });
     let _ = app.post_signup(&body_signup).await;
     let body_login = serde_json::json!({

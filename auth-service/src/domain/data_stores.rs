@@ -1,3 +1,12 @@
+use std::collections::HashSet;
+
+use validator::{Validate, ValidationError, ValidationErrors};
+
+use super::Email;
+use super::User;
+use rand::prelude::*;
+use uuid::Uuid;
+
 #[derive(Debug, PartialEq)]
 pub enum UserStoreError {
     UserAlreadyExists,
@@ -5,10 +14,6 @@ pub enum UserStoreError {
     InvalidCredentials,
     UnexpectedError,
 }
-
-use std::collections::HashSet;
-
-use super::User;
 
 #[async_trait::async_trait]
 pub trait UserStore: Send + Sync + Clone {
@@ -26,4 +31,96 @@ pub trait BannedTokenStore: Send + Sync + Clone {
     async fn is_valid(&self, token: &str) -> bool;
 
     async fn tokens(&self) -> HashSet<String>;
+}
+
+#[derive(Debug, PartialEq)]
+pub enum TwoFACodeStoreError {
+    LoginAttemptIdNotFound,
+    UnexpectedError,
+}
+
+fn validate_code(code: &str) -> Result<(), ValidationError> {
+    if code.len() == 6 {
+        return Err(ValidationError::new("Code is not 6 digits long"));
+    }
+    if code.chars().any(|num| !num.is_ascii_digit()) {
+        return Err(ValidationError::new(
+            "Only ASCII digits are part of the code.",
+        ));
+    }
+    Ok(())
+}
+
+#[derive(Clone, Debug, PartialEq, Validate)]
+pub struct TwoFACode {
+    #[validate(custom(function = "validate_code"))]
+    code: String,
+}
+
+impl TwoFACode {
+    pub fn parse(code: String) -> Result<Self, ValidationErrors> {
+        let code = Self { code };
+        code.validate()?;
+        Ok(code)
+    }
+}
+
+impl Default for TwoFACode {
+    fn default() -> Self {
+        let mut rng = rand::rng();
+        let nums: Vec<u32> = (0..=999999).collect();
+        let code = nums
+            .choose(&mut rng)
+            .expect("Something went wrong the the sample in rand.");
+        let code = format!("{:06}", code);
+        Self { code }
+    }
+}
+
+impl AsRef<str> for TwoFACode {
+    fn as_ref(&self) -> &str {
+        self.code.as_str()
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct LoginAttemptId(String);
+
+impl LoginAttemptId {
+    pub fn parse(id: String) -> Result<Self, String> {
+        match Uuid::parse_str(&id) {
+            Ok(uuid) => Ok(Self(uuid.to_string())),
+            Err(_) => Err("Invalid UUID format".to_owned()),
+        }
+    }
+}
+
+impl Default for LoginAttemptId {
+    fn default() -> Self {
+        let uuid = Uuid::new_v4();
+        Self(uuid.to_string())
+    }
+}
+
+impl AsRef<str> for LoginAttemptId {
+    fn as_ref(&self) -> &str {
+        self.0.as_str()
+    }
+}
+
+#[async_trait::async_trait]
+pub trait TwoFACodeStore: Send + Sync + Clone {
+    async fn add_code(
+        &mut self,
+        email: Email,
+        login_attempt_id: LoginAttemptId,
+        code: TwoFACode,
+    ) -> Result<(), TwoFACodeStoreError>;
+
+    async fn remove_code(&mut self, email: &Email) -> Result<(), TwoFACodeStoreError>;
+
+    async fn get_code(
+        &self,
+        email: &Email,
+    ) -> Result<(LoginAttemptId, TwoFACode), TwoFACodeStoreError>;
 }

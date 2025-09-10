@@ -6,17 +6,9 @@ use crate::domain::{Email, User};
 #[cfg(test)]
 mod tests;
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct HashmapUserStore {
     users: HashMap<Email, User>,
-}
-
-impl Default for HashmapUserStore {
-    fn default() -> Self {
-        Self {
-            users: HashMap::new(),
-        }
-    }
 }
 
 #[async_trait::async_trait]
