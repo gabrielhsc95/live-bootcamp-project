@@ -1,6 +1,6 @@
 use crate::app_state::AppState;
 use crate::domain::data_stores::{BannedTokenStore, TwoFACodeStore, UserStore};
-use crate::domain::{AuthAPIError, Email, LoginAttemptId, TwoFACode};
+use crate::domain::{AuthAPIError, Email, EmailClient, LoginAttemptId, TwoFACode};
 use crate::utils::auth::generate_auth_cookie;
 use axum::{
     Json, body::Body, extract::State, http::StatusCode, response::IntoResponse, response::Response,
@@ -39,9 +39,9 @@ async fn handle_no_2fa(email: &Email, jar: CookieJar) -> (CookieJar, Response<Bo
     (updated_jar, StatusCode::OK.into_response())
 }
 
-async fn handle_2fa<T: UserStore, U: BannedTokenStore, V: TwoFACodeStore>(
+async fn handle_2fa<T: UserStore, U: BannedTokenStore, V: TwoFACodeStore, W: EmailClient>(
     email: &Email,
-    state: &AppState<T, U, V>,
+    state: &AppState<T, U, V, W>,
     jar: CookieJar,
 ) -> (CookieJar, Response<Body>) {
     let login_attempt_id = LoginAttemptId::default();
@@ -63,13 +63,24 @@ async fn handle_2fa<T: UserStore, U: BannedTokenStore, V: TwoFACodeStore>(
         return (jar, AuthAPIError::UnexpectedError.into_response());
     }
 
+    if state
+        .email_client
+        .read()
+        .await
+        .send_email(&email, "2FA code", &two_fa_code.as_ref())
+        .await
+        .is_err()
+    {
+        return (jar, AuthAPIError::UnexpectedError.into_response());
+    }
+
     let body = Json(body);
     let response = (StatusCode::PARTIAL_CONTENT, body).into_response();
     (jar, response)
 }
 
-pub async fn login<T: UserStore, U: BannedTokenStore, V: TwoFACodeStore>(
-    State(state): State<AppState<T, U, V>>,
+pub async fn login<T: UserStore, U: BannedTokenStore, V: TwoFACodeStore, W: EmailClient>(
+    State(state): State<AppState<T, U, V, W>>,
     jar: CookieJar,
     Json(request): Json<LoginRequest>,
 ) -> (CookieJar, Response<Body>) {

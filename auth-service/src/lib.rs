@@ -1,4 +1,4 @@
-use crate::domain::{BannedTokenStore, TwoFACodeStore, UserStore};
+use crate::domain::{BannedTokenStore, EmailClient, TwoFACodeStore, UserStore};
 use axum::{Router, http::Method, routing::post, serve::Serve};
 use std::error::Error;
 use tower_http::{cors::CorsLayer, services::ServeDir};
@@ -24,8 +24,9 @@ impl Application {
         T: UserStore + 'static,
         U: BannedTokenStore + 'static,
         V: TwoFACodeStore + 'static,
+        W: EmailClient + 'static,
     >(
-        app_state: AppState<T, U, V>,
+        app_state: AppState<T, U, V, W>,
         address: &str,
     ) -> Result<Self, Box<dyn Error>> {
         let listener = tokio::net::TcpListener::bind(address).await?;
