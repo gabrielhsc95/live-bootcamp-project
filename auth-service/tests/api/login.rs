@@ -86,21 +86,19 @@ async fn should_return_401_if_incorrect_credentials() {
     let body = serde_json::json!({
         "email": "valid@email.com",
         "password": "Password1!",
-        "requires2FA": true
+        "requires2FA": false
     });
-    let _ = app.post_signup(&body).await;
+    app.post_signup(&body).await;
     let test_cases = [
         // wrong, but valid email
         serde_json::json!({
             "email": "wrong@email.com",
             "password": "Password1!",
-            "requires2FA": true
         }),
         // wrong, but valid password
         serde_json::json!({
             "email": "valid@email.com",
             "password": "ValidButWrongPassword!",
-            "requires2FA": true
         }),
     ];
     for tc in test_cases {

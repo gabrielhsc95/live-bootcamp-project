@@ -40,10 +40,10 @@ pub enum TwoFACodeStoreError {
 }
 
 fn validate_code(code: &str) -> Result<(), ValidationError> {
-    if code.len() == 6 {
+    if !code.len() == 6 {
         return Err(ValidationError::new("Code is not 6 digits long"));
     }
-    if code.chars().any(|num| !num.is_ascii_digit()) {
+    if !code.chars().all(|num| num.is_ascii_digit()) {
         return Err(ValidationError::new(
             "Only ASCII digits are part of the code.",
         ));

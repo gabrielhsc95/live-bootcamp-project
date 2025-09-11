@@ -8,7 +8,7 @@ use crate::domain::{
 #[cfg(test)]
 mod tests;
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Debug)]
 pub struct HashMapTwoFACodeStore {
     codes: HashMap<Email, (LoginAttemptId, TwoFACode)>,
 }
