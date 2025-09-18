@@ -23,4 +23,11 @@ impl Email {
         email.validate()?;
         Ok(email)
     }
+
+    pub fn new_no_validation(email: String) -> Self {
+        // Use with care, since there is no validation, for example, from
+        // parsing a User from a database, with the assumption if it is in
+        // database it has been validated already.
+        Self { email }
+    }
 }

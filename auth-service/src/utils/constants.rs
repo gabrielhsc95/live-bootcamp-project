@@ -7,6 +7,7 @@ pub const JWT_COOKIE_NAME: &str = "jwt";
 pub mod env {
     pub const JWT_SECRET_ENV_VAR: &str = "JWT_SECRET";
     pub const DROPLET_IP_ENV_VAR: &str = "DROPLET_IP";
+    pub const DATABASE_URL_ENV_VAR: &str = "DATABASE_URL";
 }
 
 pub mod prod {
@@ -16,6 +17,8 @@ pub mod prod {
 pub mod test {
     pub const APP_ADDRESS: &str = "127.0.0.1:0";
 }
+
+// TODO refactor this!
 
 fn set_token() -> String {
     dotenv().ok();
@@ -35,7 +38,17 @@ fn set_ip() -> String {
     secret
 }
 
+fn set_database_url() -> String {
+    dotenv().ok();
+    let secret = std_env::var(env::DATABASE_URL_ENV_VAR).expect("DATABASE_URL must be set.");
+    if secret.is_empty() {
+        panic!("DATABASE_URL must not be empty.");
+    }
+    secret
+}
+
 lazy_static! {
     pub static ref JWT_SECRET: String = set_token();
     pub static ref DROPLET_IP: String = set_ip();
+    pub static ref DATABASE_URL: String = set_database_url();
 }

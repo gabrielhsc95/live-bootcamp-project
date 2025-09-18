@@ -16,7 +16,7 @@ pub struct User {
 }
 
 impl User {
-    fn new(email: Email, password: Password, requires_2fa: bool) -> Self {
+    pub fn new(email: Email, password: Password, requires_2fa: bool) -> Self {
         Self {
             email,
             password,
@@ -53,5 +53,13 @@ impl User {
         let password = Password::parse(&password)?;
 
         Ok(Self::new(email, password, requires_2fa))
+    }
+
+    pub fn new_no_validation(email: String, password: String, requires_2fa: bool) -> Self {
+        Self {
+            email: Email::new_no_validation(email),
+            password: Password::new_no_validation(password),
+            requires_2fa,
+        }
     }
 }

@@ -1,5 +1,6 @@
 use crate::domain::{BannedTokenStore, EmailClient, TwoFACodeStore, UserStore};
 use axum::{Router, http::Method, routing::post, serve::Serve};
+use sqlx::{PgPool, postgres::PgPoolOptions};
 use std::error::Error;
 use tower_http::{cors::CorsLayer, services::ServeDir};
 use utils::constants::DROPLET_IP;
@@ -13,6 +14,10 @@ pub mod utils;
 use crate::app_state::AppState;
 
 use routes::*;
+
+pub async fn get_postgres_pool(url: &str) -> Result<PgPool, sqlx::Error> {
+    PgPoolOptions::new().max_connections(5).connect(url).await
+}
 
 pub struct Application {
     server: Serve<Router, Router>,

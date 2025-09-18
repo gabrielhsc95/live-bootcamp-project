@@ -23,11 +23,14 @@ impl UserStore for HashmapUserStore {
         Ok(())
     }
 
-    async fn get_user(&self, email: &str) -> Result<&User, UserStoreError> {
+    async fn get_user(&self, email: &str) -> Result<User, UserStoreError> {
         let email = Email {
             email: email.to_owned(),
         };
-        self.users.get(&email).ok_or(UserStoreError::UserNotFound)
+        self.users
+            .get(&email)
+            .ok_or(UserStoreError::UserNotFound)
+            .cloned()
     }
 
     async fn validate_user(&self, email: &str, password: &str) -> Result<(), UserStoreError> {

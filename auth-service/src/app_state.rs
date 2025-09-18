@@ -8,7 +8,7 @@ pub struct AppState<T: UserStore, U: BannedTokenStore, V: TwoFACodeStore, W: Ema
     pub user_store: Arc<RwLock<T>>,
     pub banned_token_store: Arc<RwLock<U>>,
     pub two_fa_code_store: Arc<RwLock<V>>,
-    pub email_client: Arc<RwLock<W>>,
+    pub email_client: Arc<W>,
 }
 
 impl<T: UserStore, U: BannedTokenStore, V: TwoFACodeStore, W: EmailClient> AppState<T, U, V, W> {
@@ -16,7 +16,7 @@ impl<T: UserStore, U: BannedTokenStore, V: TwoFACodeStore, W: EmailClient> AppSt
         user_store: Arc<RwLock<T>>,
         banned_token_store: Arc<RwLock<U>>,
         two_fa_code_store: Arc<RwLock<V>>,
-        email_client: Arc<RwLock<W>>,
+        email_client: Arc<W>,
     ) -> Self {
         Self {
             user_store,

@@ -65,8 +65,6 @@ async fn handle_2fa<T: UserStore, U: BannedTokenStore, V: TwoFACodeStore, W: Ema
 
     if state
         .email_client
-        .read()
-        .await
         .send_email(&email, "2FA code", &two_fa_code.as_ref())
         .await
         .is_err()
