@@ -9,7 +9,9 @@ use auth_service::services::mock_mail_client::MockEmailClient;
 use auth_service::utils::constants::DATABASE_URL;
 use auth_service::utils::constants::test::APP_ADDRESS;
 use reqwest::cookie::Jar;
+use sqlx::Connection;
 use sqlx::Executor;
+use sqlx::PgConnection;
 use sqlx::PgPool;
 use sqlx::postgres::PgPoolOptions;
 use std::sync::Arc;
@@ -42,7 +44,7 @@ async fn configure_database(db_conn_string: &str, db_name: &str) {
         .expect("Failed to migrate the database");
 }
 
-async fn configure_postgresql() -> PgPool {
+async fn configure_postgresql() -> (String, PgPool) {
     let postgresql_conn_url = DATABASE_URL.to_owned();
 
     let db_name = Uuid::new_v4().to_string();
@@ -52,9 +54,43 @@ async fn configure_postgresql() -> PgPool {
     let postgresql_conn_url_with_db = format!("{}/{}", postgresql_conn_url, db_name);
 
     // Create a new connection pool and return it
-    get_postgres_pool(&postgresql_conn_url_with_db)
+    (
+        db_name,
+        get_postgres_pool(&postgresql_conn_url_with_db)
+            .await
+            .expect("Failed to create Postgres connection pool!"),
+    )
+}
+
+async fn delete_database(db_name: &str) {
+    let postgresql_conn_url: String = DATABASE_URL.to_owned();
+
+    let mut connection = PgConnection::connect(&postgresql_conn_url)
         .await
-        .expect("Failed to create Postgres connection pool!")
+        .expect("Failed to connect to Postgres");
+
+    // Kill any active connections to the database
+    connection
+        .execute(
+            format!(
+                r#"
+                SELECT pg_terminate_backend(pg_stat_activity.pid)
+                FROM pg_stat_activity
+                WHERE pg_stat_activity.datname = '{}'
+                  AND pid <> pg_backend_pid();
+        "#,
+                db_name
+            )
+            .as_str(),
+        )
+        .await
+        .expect("Failed to drop the database.");
+
+    // Drop the database
+    connection
+        .execute(format!(r#"DROP DATABASE "{}";"#, db_name).as_str())
+        .await
+        .expect("Failed to drop the database.");
 }
 
 pub struct TestApp {
@@ -63,11 +99,13 @@ pub struct TestApp {
     pub http_client: reqwest::Client,
     pub banned_token_store: Arc<RwLock<HashSetBannedTokenStore>>,
     pub two_fa_code_store: Arc<RwLock<HashMapTwoFACodeStore>>,
+    db_name: String,
+    clean_up_called: bool,
 }
 
 impl TestApp {
     pub async fn new() -> Self {
-        let pg_pool = configure_postgresql().await;
+        let (db_name, pg_pool) = configure_postgresql().await;
         let user_store = Arc::new(RwLock::new(PostgresUserStore::new(pg_pool)));
         let banned_token_store = HashSetBannedTokenStore::default();
         let banned_token_store = Arc::new(RwLock::new(banned_token_store));
@@ -101,6 +139,8 @@ impl TestApp {
             http_client,
             banned_token_store: banned_token_store.clone(),
             two_fa_code_store: two_fa_code_store.clone(),
+            db_name,
+            clean_up_called: false,
         }
     }
 
@@ -166,6 +206,19 @@ impl TestApp {
             .send()
             .await
             .expect("Failed to execute request.")
+    }
+
+    pub async fn clean_up(&mut self) {
+        delete_database(&self.db_name).await;
+        self.clean_up_called = true;
+    }
+}
+
+impl Drop for TestApp {
+    fn drop(&mut self) {
+        if !self.clean_up_called {
+            panic!("The test didn't called clean_up()");
+        }
     }
 }
 
