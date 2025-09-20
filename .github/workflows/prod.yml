@@ -58,6 +58,8 @@ jobs:
           DROPLET_IP: "127.0.0.1" # placeholder_for_testing
           DATABASE_URL: postgres://postgres:${{ secrets.POSTGRES_PASSWORD }}@postgres:5432/postgres
         run: |
+          echo "Waiting for PostgreSQL service to be available..."
+          sleep 10 
           cargo build --verbose
           cargo test --verbose
 
