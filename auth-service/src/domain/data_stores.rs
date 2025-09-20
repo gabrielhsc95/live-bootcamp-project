@@ -63,6 +63,13 @@ impl TwoFACode {
         code.validate()?;
         Ok(code)
     }
+
+    pub fn new_no_validation(code: String) -> Self {
+        // Use with care, since there is no validation, for example, from
+        // parsing a TwoFACode from redis, with the assumption if it is in
+        // redis it is valid
+        Self { code }
+    }
 }
 
 impl Default for TwoFACode {
@@ -92,6 +99,13 @@ impl LoginAttemptId {
             Ok(uuid) => Ok(Self(uuid.to_string())),
             Err(_) => Err("Invalid UUID format".to_owned()),
         }
+    }
+
+    pub fn new_no_validation(id: String) -> Self {
+        // Use with care, since there is no validation, for example, from
+        // parsing a LoginAttemptId from redis, with the assumption if it is in
+        // redis it is valid.
+        Self(id)
     }
 }
 
