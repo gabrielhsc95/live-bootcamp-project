@@ -18,12 +18,16 @@ pub async fn logout<T: UserStore, U: BannedTokenStore, V: TwoFACodeStore, W: Ema
     let token = cookie.value().to_owned();
     let _ = match validate_token(&token).await {
         Ok(_) => {
-            state
+            match state
                 .banned_token_store
                 .write()
                 .await
-                .ban_token(token)
-                .await;
+                .add_token(token)
+                .await
+            {
+                Ok(_) => {}
+                Err(_) => return (jar, AuthAPIError::UnexpectedError.into_response()),
+            }
         }
         Err(_) => return (jar, AuthAPIError::InvalidToken.into_response()),
     };

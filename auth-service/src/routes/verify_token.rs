@@ -15,14 +15,16 @@ pub async fn verify_token<T: UserStore, U: BannedTokenStore, V: TwoFACodeStore, 
     State(state): State<AppState<T, U, V, W>>,
     Json(request): Json<VerifyTokenRequest>,
 ) -> impl IntoResponse {
-    if !state
+    let verification = state
         .banned_token_store
         .read()
         .await
-        .is_valid(&request.token)
-        .await
-    {
-        return AuthAPIError::InvalidToken.into_response();
+        .contains_token(&request.token)
+        .await;
+    match verification {
+        Ok(true) => return AuthAPIError::InvalidToken.into_response(),
+        Ok(false) => {}
+        Err(_) => return AuthAPIError::UnexpectedError.into_response(),
     }
     match validate_token(&request.token).await {
         Ok(_) => StatusCode::OK.into_response(),

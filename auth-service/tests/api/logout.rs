@@ -1,5 +1,5 @@
 use crate::helpers::TestApp;
-use auth_service::utils::constants::JWT_COOKIE_NAME;
+use auth_service::{domain::BannedTokenStore, utils::constants::JWT_COOKIE_NAME};
 use reqwest::Url;
 
 #[tokio::test]
@@ -50,13 +50,13 @@ async fn should_return_200_if_valid_jwt_cookie() {
 
     let response = app.post_logout().await;
     assert_eq!(response.status(), 200);
+
+    let banned_token_store = app.banned_token_store.read().await.clone();
     assert!(
-        app.banned_token_store
-            .read()
+        banned_token_store
+            .contains_token(&auth_cookie.value())
             .await
-            .clone()
-            .tokens
-            .contains(auth_cookie.value())
+            .unwrap()
     );
     app.clean_up().await;
 }

@@ -1,4 +1,4 @@
-use crate::domain::data_stores::BannedTokenStore;
+use crate::domain::data_stores::{BannedTokenStore, BannedTokenStoreError};
 use std::collections::HashSet;
 
 #[cfg(test)]
@@ -11,15 +11,12 @@ pub struct HashSetBannedTokenStore {
 
 #[async_trait::async_trait]
 impl BannedTokenStore for HashSetBannedTokenStore {
-    async fn ban_token(&mut self, token: String) {
+    async fn add_token(&mut self, token: String) -> Result<(), BannedTokenStoreError> {
         self.tokens.insert(token);
+        Ok(())
     }
-
-    async fn is_valid(&self, token: &str) -> bool {
-        !self.tokens.contains(token)
-    }
-
-    async fn tokens(&self) -> HashSet<String> {
-        self.tokens.clone()
+    async fn contains_token(&self, token: &str) -> Result<bool, BannedTokenStoreError> {
+        let result = self.tokens.contains(token);
+        Ok(result)
     }
 }

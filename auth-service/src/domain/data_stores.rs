@@ -1,5 +1,3 @@
-use std::collections::HashSet;
-
 use validator::{Validate, ValidationError, ValidationErrors};
 
 use super::Email;
@@ -24,13 +22,15 @@ pub trait UserStore: Send + Sync + Clone {
     async fn validate_user(&self, email: &str, password: &str) -> Result<(), UserStoreError>;
 }
 
+#[derive(Debug)]
+pub enum BannedTokenStoreError {
+    UnexpectedError,
+}
+
 #[async_trait::async_trait]
 pub trait BannedTokenStore: Send + Sync + Clone {
-    async fn ban_token(&mut self, token: String);
-
-    async fn is_valid(&self, token: &str) -> bool;
-
-    async fn tokens(&self) -> HashSet<String>;
+    async fn add_token(&mut self, token: String) -> Result<(), BannedTokenStoreError>;
+    async fn contains_token(&self, token: &str) -> Result<bool, BannedTokenStoreError>;
 }
 
 #[derive(Debug, PartialEq)]
