@@ -12,6 +12,7 @@ use crate::domain::{
     data_stores::{UserStore, UserStoreError},
 };
 
+#[tracing::instrument(name = "Verify password hash", skip_all)]
 async fn verify_password_hash(
     expected_password_hash: String,
     password_candidate: String,
@@ -30,6 +31,7 @@ async fn verify_password_hash(
     verification
 }
 
+#[tracing::instrument(name = "Computing password hash", skip_all)]
 async fn compute_password_hash(password: String) -> Result<String, Box<dyn Error + Send + Sync>> {
     let salt = SaltString::generate(&mut OsRng);
     let argon2 = Argon2::new(
@@ -61,6 +63,7 @@ impl PostgresUserStore {
 
 #[async_trait::async_trait]
 impl UserStore for PostgresUserStore {
+    #[tracing::instrument(name = "Adding user to PostgreSQL", skip_all)]
     async fn add_user(&mut self, user: User) -> Result<(), UserStoreError> {
         let email = user.email_str();
         let password = user.password_str();
@@ -86,6 +89,7 @@ impl UserStore for PostgresUserStore {
         }
     }
 
+    #[tracing::instrument(name = "Retrieving user from PostgreSQL", skip_all)]
     async fn get_user(&self, email: &str) -> Result<User, UserStoreError> {
         let email = match Email::parse(email) {
             Ok(email) => email,
@@ -111,6 +115,7 @@ impl UserStore for PostgresUserStore {
         }
     }
 
+    #[tracing::instrument(name = "Validating user credentials in PostgreSQL", skip_all)]
     async fn validate_user(&self, email: &str, password: &str) -> Result<(), UserStoreError> {
         let user = self.get_user(email).await?;
         match verify_password_hash(user.password_str().to_owned(), password.to_owned()).await {

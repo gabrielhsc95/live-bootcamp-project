@@ -7,6 +7,11 @@ use std::error::Error;
 use tower_http::{cors::CorsLayer, services::ServeDir};
 use utils::constants::DROPLET_IP;
 
+use crate::utils::tracing::metrics_middleware;
+use axum::middleware;
+use axum_otel_metrics::HttpMetricsLayerBuilder;
+use axum_tracing_opentelemetry::middleware::{OtelAxumLayer, OtelInResponseLayer};
+
 pub mod app_state;
 pub mod domain;
 pub mod routes;
@@ -62,7 +67,11 @@ impl Application {
             .route("/logout", post(logout))
             .route("/verify-token", post(verify_token))
             .with_state(app_state.clone())
-            .layer(cors);
+            .layer(cors)
+            .layer(OtelAxumLayer::default())
+            .layer(OtelInResponseLayer::default())
+            .layer(HttpMetricsLayerBuilder::new().build())
+            .layer(middleware::from_fn(metrics_middleware));
 
         let server = axum::serve(listener, router);
 
@@ -70,7 +79,7 @@ impl Application {
     }
 
     pub async fn run(self) -> Result<(), std::io::Error> {
-        println!("listening on {}", &self.address);
+        logfire::info!("listening on {address}", address = &self.address);
         self.server.await
     }
 }

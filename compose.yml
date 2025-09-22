@@ -46,6 +46,7 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       DROPLET_IP: ${DROPLET_IP}
       DATABASE_URL: "postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432"
+      LOGFIRE_TOKEN: ${LOGFIRE_TOKEN}
     depends_on:
       postgres:
         condition: service_healthy

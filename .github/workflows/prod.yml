@@ -57,6 +57,7 @@ jobs:
           JWT_SECRET: "placeholder_for_testing"
           DROPLET_IP: "127.0.0.1" # placeholder_for_testing
           DATABASE_URL: postgres://postgres:${{ secrets.POSTGRES_PASSWORD }}@localhost:5432
+          LOGFIRE_TOKEN: ${{ secrets.LOGFIRE_TOKEN }}
         run: |
           echo "Checking for PostgreSQL service health..."
           for i in $(seq 1 10); do
@@ -114,6 +115,7 @@ jobs:
             export DROPLET_IP=${{ vars.DROPLET_IP }}
             export POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
             export DATABASE_URL=${{ secrets.DATABASE_URL }}
+            export LOGFIRE_TOKEN=${{ secrets.LOGFIRE_TOKEN }}
             docker compose down -v --remove-orphans
             docker compose pull
             docker compose up -d
