@@ -13,6 +13,7 @@ use auth_service::services::data_stores::postgres_user_store::PostgresUserStore;
 use auth_service::services::data_stores::redis_banned_token_store::RedisBannedTokenStore;
 use auth_service::services::mock_mail_client::MockEmailClient;
 use auth_service::utils::constants::DATABASE_URL;
+use auth_service::utils::constants::ENV_NAME;
 use auth_service::utils::constants::REDIS_HOST_NAME;
 use auth_service::utils::constants::prod::APP_ADDRESS;
 use sqlx::PgPool;
@@ -41,6 +42,7 @@ fn configure_redis() -> redis::Connection {
 #[tokio::main]
 async fn main() {
     let logfire = logfire::configure()
+        .with_environment(ENV_NAME.to_owned())
         .finish()
         .expect("Logfire failed to configure");
     let _guard = logfire.shutdown_guard();

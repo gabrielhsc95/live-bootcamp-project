@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::app_state::AppState;
 use crate::domain::User;
+use crate::domain::UserStoreError;
 
 #[derive(Deserialize)]
 pub struct SignupRequest {
@@ -30,13 +31,20 @@ pub async fn signup<T: UserStore, U: BannedTokenStore, V: TwoFACodeStore, W: Ema
         }
     };
     let mut user_store = state.user_store.write().await;
-    if let Ok(_) = user_store.add_user(user).await {
-        let response = Json(SignupResponse {
-            message: "User created successfully!".to_owned(),
-        });
-
-        (StatusCode::CREATED, response).into_response()
-    } else {
-        return AuthAPIError::UserAlreadyExists.into_response();
+    match user_store.add_user(user).await {
+        Ok(_) => {
+            let response = Json(SignupResponse {
+                message: "User created successfully!".to_owned(),
+            });
+            (StatusCode::CREATED, response).into_response()
+        }
+        Err(e) => match e {
+            UserStoreError::UserAlreadyExists => AuthAPIError::UserAlreadyExists.into_response(),
+            UserStoreError::InvalidCredentials => AuthAPIError::InvalidCredentials.into_response(),
+            UserStoreError::UnexpectedError => AuthAPIError::UnexpectedError.into_response(),
+            UserStoreError::UserNotFound => {
+                panic!("user not found should not happen inside add_user")
+            }
+        },
     }
 }

@@ -10,6 +10,7 @@ pub mod env {
     pub const DROPLET_IP_ENV_VAR: &str = "DROPLET_IP";
     pub const DATABASE_URL_ENV_VAR: &str = "DATABASE_URL";
     pub const REDIS_HOST_NAME_ENV_VAR: &str = "REDIS_HOST_NAME";
+    pub const ENV_NAME_ENV_VAR: &str = "ENV_NAME";
 }
 
 pub mod prod {
@@ -40,4 +41,5 @@ lazy_static! {
     pub static ref DATABASE_URL: String = set_constant(env::DATABASE_URL_ENV_VAR, None);
     pub static ref REDIS_HOST_NAME: String =
         set_constant(env::REDIS_HOST_NAME_ENV_VAR, Some(DEFAULT_REDIS_HOSTNAME));
+    pub static ref ENV_NAME: String = set_constant(env::ENV_NAME_ENV_VAR, None);
 }

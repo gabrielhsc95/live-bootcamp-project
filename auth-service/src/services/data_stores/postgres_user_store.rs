@@ -69,6 +69,10 @@ impl UserStore for PostgresUserStore {
         let password = user.password_str();
         let requires_2fa = user.requires_2fa();
 
+        if self.get_user(email).await.is_ok() {
+            return Err(UserStoreError::UserAlreadyExists);
+        }
+
         let password_hash = match compute_password_hash(password.to_owned()).await {
             Ok(hash) => hash,
             Err(_) => {

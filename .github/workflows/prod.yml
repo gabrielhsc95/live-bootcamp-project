@@ -58,6 +58,7 @@ jobs:
           DROPLET_IP: "127.0.0.1" # placeholder_for_testing
           DATABASE_URL: postgres://postgres:${{ secrets.POSTGRES_PASSWORD }}@localhost:5432
           LOGFIRE_TOKEN: ${{ secrets.LOGFIRE_TOKEN }}
+          ENV_NAME: test
         run: |
           echo "Checking for PostgreSQL service health..."
           for i in $(seq 1 10); do
@@ -116,6 +117,7 @@ jobs:
             export POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
             export DATABASE_URL=${{ secrets.DATABASE_URL }}
             export LOGFIRE_TOKEN=${{ secrets.LOGFIRE_TOKEN }}
+            export ENV_NAME=prod
             docker compose down -v --remove-orphans
             docker compose pull
             docker compose up -d
