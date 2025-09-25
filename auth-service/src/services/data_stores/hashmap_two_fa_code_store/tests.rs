@@ -38,7 +38,12 @@ async fn test_add_code_fail() {
         .await;
 
     assert!(result.is_err());
-    assert_eq!(result.err(), Some(TwoFACodeStoreError::UnexpectedError))
+    assert_eq!(
+        result.err(),
+        Some(TwoFACodeStoreError::UnexpectedError(
+            HashMapTwoFACodeStoreError::InsertError.into()
+        ))
+    )
 }
 
 #[tokio::test]
@@ -64,7 +69,12 @@ async fn test_remove_fail() {
     let email = Email::parse("email@email.com").unwrap();
     let result = store.remove_code(&email).await;
     assert!(result.is_err());
-    assert_eq!(result.err(), Some(TwoFACodeStoreError::UnexpectedError));
+    assert_eq!(
+        result.err(),
+        Some(TwoFACodeStoreError::UnexpectedError(
+            HashMapTwoFACodeStoreError::RemoveError.into()
+        ))
+    );
 }
 
 #[tokio::test]
@@ -92,5 +102,10 @@ async fn test_get_code_fail() {
     let email = Email::parse("email@email.com").unwrap();
     let result = store.get_code(&email).await;
     assert!(result.is_err());
-    assert_eq!(result.err(), Some(TwoFACodeStoreError::UnexpectedError));
+    assert_eq!(
+        result.err(),
+        Some(TwoFACodeStoreError::UnexpectedError(
+            HashMapTwoFACodeStoreError::GetError.into()
+        ))
+    );
 }

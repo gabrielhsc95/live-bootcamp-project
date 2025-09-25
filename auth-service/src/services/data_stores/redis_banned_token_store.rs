@@ -34,7 +34,7 @@ impl BannedTokenStore for RedisBannedTokenStore {
             banned_token_store.set_ex(key, true, TOKEN_TTL_SECONDS as u64);
         match setting_result {
             Ok(_) => Ok(()),
-            Err(_) => Err(BannedTokenStoreError::UnexpectedError),
+            Err(e) => Err(BannedTokenStoreError::UnexpectedError(e.into())),
         }
     }
 
@@ -44,7 +44,7 @@ impl BannedTokenStore for RedisBannedTokenStore {
         let get_result: Result<bool, redis::RedisError> = banned_token_store.get(key);
         match get_result {
             Ok(result) => Ok(result),
-            Err(_) => Err(BannedTokenStoreError::UnexpectedError),
+            Err(e) => Err(BannedTokenStoreError::UnexpectedError(e.into())),
         }
     }
 }

@@ -46,13 +46,13 @@ impl TwoFACodeStore for RedisTwoFACodeStore {
         );
         let two_fa_tuple = match serde_json::to_string(&two_fa_tuple) {
             Ok(two_fa_tuple) => two_fa_tuple,
-            Err(_) => return Err(TwoFACodeStoreError::UnexpectedError),
+            Err(e) => return Err(TwoFACodeStoreError::UnexpectedError(e.into())),
         };
         let setting_result: Result<(), redis::RedisError> =
             two_fa_store.set_ex(key, two_fa_tuple, TEN_MINUTES_IN_SECONDS);
         match setting_result {
             Ok(_) => Ok(()),
-            Err(_) => Err(TwoFACodeStoreError::UnexpectedError),
+            Err(e) => Err(TwoFACodeStoreError::UnexpectedError(e.into())),
         }
     }
 
@@ -62,7 +62,7 @@ impl TwoFACodeStore for RedisTwoFACodeStore {
         let del_result: Result<(), redis::RedisError> = two_fa_store.del(key);
         match del_result {
             Ok(_) => Ok(()),
-            Err(_) => Err(TwoFACodeStoreError::UnexpectedError),
+            Err(e) => Err(TwoFACodeStoreError::UnexpectedError(e.into())),
         }
     }
 
@@ -82,10 +82,10 @@ impl TwoFACodeStore for RedisTwoFACodeStore {
                         let code = TwoFACode::new_no_validation(two_fa_tuple.1);
                         Ok((login_attempt_id, code))
                     }
-                    Err(_) => Err(TwoFACodeStoreError::UnexpectedError),
+                    Err(e) => Err(TwoFACodeStoreError::UnexpectedError(e.into())),
                 }
             }
-            Err(_) => Err(TwoFACodeStoreError::UnexpectedError),
+            Err(e) => Err(TwoFACodeStoreError::UnexpectedError(e.into())),
         }
     }
 }

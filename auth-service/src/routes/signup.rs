@@ -20,6 +20,7 @@ pub struct SignupResponse {
     pub message: String,
 }
 
+#[tracing::instrument(name = "Signup", skip_all)]
 pub async fn signup<T: UserStore, U: BannedTokenStore, V: TwoFACodeStore, W: EmailClient>(
     State(state): State<AppState<T, U, V, W>>,
     Json(request): Json<SignupRequest>,
@@ -41,7 +42,7 @@ pub async fn signup<T: UserStore, U: BannedTokenStore, V: TwoFACodeStore, W: Ema
         Err(e) => match e {
             UserStoreError::UserAlreadyExists => AuthAPIError::UserAlreadyExists.into_response(),
             UserStoreError::InvalidCredentials => AuthAPIError::InvalidCredentials.into_response(),
-            UserStoreError::UnexpectedError => AuthAPIError::UnexpectedError.into_response(),
+            UserStoreError::UnexpectedError(e) => AuthAPIError::UnexpectedError(e).into_response(),
             UserStoreError::UserNotFound => {
                 panic!("user not found should not happen inside add_user")
             }

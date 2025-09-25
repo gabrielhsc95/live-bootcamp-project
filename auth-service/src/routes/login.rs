@@ -28,6 +28,7 @@ pub enum LoginResponse {
     TwoFactorAuth(TwoFactorAuthResponse),
 }
 
+#[tracing::instrument(name = "No 2FA", skip_all)]
 async fn handle_no_2fa(email: &Email, jar: CookieJar) -> (CookieJar, Response<Body>) {
     let auth_cookie = match generate_auth_cookie(email) {
         Ok(cookie) => cookie,
@@ -39,6 +40,7 @@ async fn handle_no_2fa(email: &Email, jar: CookieJar) -> (CookieJar, Response<Bo
     (updated_jar, StatusCode::OK.into_response())
 }
 
+#[tracing::instrument(name = "Handle 2FA", skip_all)]
 async fn handle_2fa<T: UserStore, U: BannedTokenStore, V: TwoFACodeStore, W: EmailClient>(
     email: &Email,
     state: &AppState<T, U, V, W>,
@@ -52,24 +54,22 @@ async fn handle_2fa<T: UserStore, U: BannedTokenStore, V: TwoFACodeStore, W: Ema
         login_attempt_id: login_attempt_id.as_ref().to_owned(),
     };
 
-    if state
+    if let Err(e) = state
         .two_fa_code_store
         .write()
         .await
         .add_code(email.clone(), login_attempt_id.clone(), two_fa_code.clone())
         .await
-        .is_err()
     {
-        return (jar, AuthAPIError::UnexpectedError.into_response());
+        return (jar, AuthAPIError::UnexpectedError(e.into()).into_response());
     }
 
-    if state
+    if let Err(e) = state
         .email_client
         .send_email(&email, "2FA code", &two_fa_code.as_ref())
         .await
-        .is_err()
     {
-        return (jar, AuthAPIError::UnexpectedError.into_response());
+        return (jar, AuthAPIError::UnexpectedError(e.into()).into_response());
     }
 
     let body = Json(body);
@@ -77,6 +77,7 @@ async fn handle_2fa<T: UserStore, U: BannedTokenStore, V: TwoFACodeStore, W: Ema
     (jar, response)
 }
 
+#[tracing::instrument(name = "Login", skip_all)]
 pub async fn login<T: UserStore, U: BannedTokenStore, V: TwoFACodeStore, W: EmailClient>(
     State(state): State<AppState<T, U, V, W>>,
     jar: CookieJar,

@@ -1,3 +1,4 @@
+use color_eyre::config::HookBuilder;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
@@ -13,9 +14,10 @@ use auth_service::services::data_stores::postgres_user_store::PostgresUserStore;
 use auth_service::services::data_stores::redis_banned_token_store::RedisBannedTokenStore;
 use auth_service::services::mock_mail_client::MockEmailClient;
 use auth_service::utils::constants::DATABASE_URL;
-use auth_service::utils::constants::ENV_NAME;
 use auth_service::utils::constants::REDIS_HOST_NAME;
 use auth_service::utils::constants::prod::APP_ADDRESS;
+use auth_service::utils::tracing::init_tracing;
+use color_eyre::config::Theme;
 use sqlx::PgPool;
 
 async fn configure_postgresql() -> PgPool {
@@ -41,11 +43,11 @@ fn configure_redis() -> redis::Connection {
 
 #[tokio::main]
 async fn main() {
-    let logfire = logfire::configure()
-        .with_environment(ENV_NAME.to_owned())
-        .finish()
-        .expect("Logfire failed to configure");
-    let _guard = logfire.shutdown_guard();
+    let _guard = init_tracing().expect("Failed to initialize tracing");
+    HookBuilder::new()
+        .theme(Theme::new())
+        .install()
+        .expect("Failed to install color_eyre");
     let pg_pool = configure_postgresql().await;
     let user_store = Arc::new(RwLock::new(PostgresUserStore::new(pg_pool)));
     let redis_conn = configure_redis();

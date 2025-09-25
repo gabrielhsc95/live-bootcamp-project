@@ -7,6 +7,7 @@ use crate::utils::constants::JWT_COOKIE_NAME;
 use axum::{extract::State, http::StatusCode, response::IntoResponse};
 use axum_extra::extract::cookie::{Cookie, CookieJar};
 
+#[tracing::instrument(name = "Logout", skip_all)]
 pub async fn logout<T: UserStore, U: BannedTokenStore, V: TwoFACodeStore, W: EmailClient>(
     State(state): State<AppState<T, U, V, W>>,
     jar: CookieJar,
@@ -26,7 +27,7 @@ pub async fn logout<T: UserStore, U: BannedTokenStore, V: TwoFACodeStore, W: Ema
                 .await
             {
                 Ok(_) => {}
-                Err(_) => return (jar, AuthAPIError::UnexpectedError.into_response()),
+                Err(e) => return (jar, AuthAPIError::UnexpectedError(e.into()).into_response()),
             }
         }
         Err(_) => return (jar, AuthAPIError::InvalidToken.into_response()),

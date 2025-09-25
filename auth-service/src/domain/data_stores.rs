@@ -2,15 +2,33 @@ use validator::{Validate, ValidationError, ValidationErrors};
 
 use super::Email;
 use super::User;
+use color_eyre::eyre::Report;
 use rand::prelude::*;
+use thiserror::Error;
 use uuid::Uuid;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Error)]
 pub enum UserStoreError {
+    #[error("User already exists")]
     UserAlreadyExists,
+    #[error("User not found")]
     UserNotFound,
+    #[error("Invalid credentials")]
     InvalidCredentials,
-    UnexpectedError,
+    #[error("Unexpected error")]
+    UnexpectedError(#[source] Report),
+}
+
+impl PartialEq for UserStoreError {
+    fn eq(&self, other: &Self) -> bool {
+        matches!(
+            (self, other),
+            (Self::UserAlreadyExists, Self::UserAlreadyExists)
+                | (Self::UserNotFound, Self::UserNotFound)
+                | (Self::InvalidCredentials, Self::InvalidCredentials)
+                | (Self::UnexpectedError(_), Self::UnexpectedError(_))
+        )
+    }
 }
 
 #[async_trait::async_trait]
@@ -22,9 +40,10 @@ pub trait UserStore: Send + Sync + Clone {
     async fn validate_user(&self, email: &str, password: &str) -> Result<(), UserStoreError>;
 }
 
-#[derive(Debug)]
+#[derive(Debug, Error)]
 pub enum BannedTokenStoreError {
-    UnexpectedError,
+    #[error("Unexpected error")]
+    UnexpectedError(#[source] Report),
 }
 
 #[async_trait::async_trait]
@@ -33,10 +52,22 @@ pub trait BannedTokenStore: Send + Sync + Clone {
     async fn contains_token(&self, token: &str) -> Result<bool, BannedTokenStoreError>;
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Error)]
 pub enum TwoFACodeStoreError {
+    #[error("Login attempt id not found")]
     LoginAttemptIdNotFound,
-    UnexpectedError,
+    #[error("Unexpected error")]
+    UnexpectedError(#[source] Report),
+}
+
+impl PartialEq for TwoFACodeStoreError {
+    fn eq(&self, other: &Self) -> bool {
+        matches!(
+            (self, other),
+            (Self::LoginAttemptIdNotFound, Self::LoginAttemptIdNotFound)
+                | (Self::UnexpectedError(_), Self::UnexpectedError(_))
+        )
+    }
 }
 
 fn validate_code(code: &str) -> Result<(), ValidationError> {

@@ -59,6 +59,7 @@ jobs:
           DATABASE_URL: postgres://postgres:${{ secrets.POSTGRES_PASSWORD }}@localhost:5432
           LOGFIRE_TOKEN: ${{ secrets.LOGFIRE_TOKEN }}
           ENV_NAME: test
+          RUST_BACKTRACE: 1
         run: |
           echo "Checking for PostgreSQL service health..."
           for i in $(seq 1 10); do
@@ -118,6 +119,7 @@ jobs:
             export DATABASE_URL=${{ secrets.DATABASE_URL }}
             export LOGFIRE_TOKEN=${{ secrets.LOGFIRE_TOKEN }}
             export ENV_NAME=prod
+            RUST_BACKTRACE=1
             docker compose down -v --remove-orphans
             docker compose pull
             docker compose up -d

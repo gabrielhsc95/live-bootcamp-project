@@ -19,6 +19,8 @@ pub struct Verify2FARequest {
     #[serde(rename = "2FACode")]
     pub twofa_code: String,
 }
+
+#[tracing::instrument(name = "Verify 2FA", skip_all)]
 pub async fn verify_2fa<T: UserStore, U: BannedTokenStore, V: TwoFACodeStore, W: EmailClient>(
     State(state): State<AppState<T, U, V, W>>,
     jar: CookieJar,
@@ -57,15 +59,14 @@ pub async fn verify_2fa<T: UserStore, U: BannedTokenStore, V: TwoFACodeStore, W:
     if twofa_code_request != twofa_code_store {
         return (jar, AuthAPIError::IncorrectCredentials.into_response());
     }
-    if state
+    if let Err(e) = state
         .two_fa_code_store
         .write()
         .await
         .remove_code(&email)
         .await
-        .is_err()
     {
-        return (jar, AuthAPIError::UnexpectedError.into_response());
+        return (jar, AuthAPIError::UnexpectedError(e.into()).into_response());
     }
 
     let auth_cookie = match generate_auth_cookie(&email) {

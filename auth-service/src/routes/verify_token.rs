@@ -11,6 +11,7 @@ pub struct VerifyTokenRequest {
     pub token: String,
 }
 
+#[tracing::instrument(name = "Verify Token", skip_all)]
 pub async fn verify_token<T: UserStore, U: BannedTokenStore, V: TwoFACodeStore, W: EmailClient>(
     State(state): State<AppState<T, U, V, W>>,
     Json(request): Json<VerifyTokenRequest>,
@@ -24,7 +25,7 @@ pub async fn verify_token<T: UserStore, U: BannedTokenStore, V: TwoFACodeStore, 
     match verification {
         Ok(true) => return AuthAPIError::InvalidToken.into_response(),
         Ok(false) => {}
-        Err(_) => return AuthAPIError::UnexpectedError.into_response(),
+        Err(e) => return AuthAPIError::UnexpectedError(e.into()).into_response(),
     }
     match validate_token(&request.token).await {
         Ok(_) => StatusCode::OK.into_response(),
